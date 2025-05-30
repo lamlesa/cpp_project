@@ -12,9 +12,15 @@ void Game::initialize_window()
     this->window = new sf::RenderWindow(this->video_mode, "SONOR GAME", sf::Style::Titlebar | sf::Style::Close);
 }
 
+void Game::initialize_enemies()
+{
+    hunter = new Hunter();
+}
+
 Game::Game()
 {
     this->initialize_variables();
+    this->initialize_enemies();
     this->initialize_window();
     field_image.loadFromFile("images/default_field.jpg");
     field_texture.loadFromImage(field_image);
@@ -58,5 +64,6 @@ void Game::render()
 {
     this->window->clear(sf::Color(0, 255, 0, 255));
     this->window->draw(field_sprite);
+    this->window->draw(hunter->hunter_sprite);
     this->window->display();
 }
