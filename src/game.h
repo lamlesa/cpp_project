@@ -25,6 +25,27 @@ struct Hunter
     }
 };
 
+struct Victim
+{
+    sf::Image victim_image;
+    sf::Sprite victim_sprite;
+    sf::Texture victim_texture;
+    int victim_id, x, y;
+    static int position_x, position_y;
+    bool draw = 0;
+    Victim()
+    {
+        victim_image.loadFromFile("images/victim.png");
+        float scaleX = 0.15f;
+        float scaleY = 0.15f;
+        victim_texture.loadFromImage(victim_image);
+        victim_sprite.setTexture(victim_texture);
+        victim_sprite.setScale(scaleX, scaleY);
+        victim_sprite.setPosition(position_x, position_y);
+        position_x += 100;
+    }
+};
+
 class Game
 {
 private:
@@ -35,12 +56,17 @@ private:
     sf::Texture field_texture;
     sf::Sprite field_sprite;
     Hunter* hunter;
+    Victim* victim_1;
+    Victim* victim_2;
+    Victim* victim_3;
+    Victim* victim_4;
+    Victim* victim_5;
 public:
     Game();
     virtual ~Game();
     void initialize_variables();
     void initialize_window();
-    void initialize_enemies();
+    void initialize_players();
     const bool running();
     void update();
     void render();

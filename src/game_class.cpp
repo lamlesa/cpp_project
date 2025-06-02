@@ -12,20 +12,30 @@ void Game::initialize_window()
     this->window = new sf::RenderWindow(this->video_mode, "SONOR GAME", sf::Style::Titlebar | sf::Style::Close);
 }
 
-void Game::initialize_enemies()
+void Game::initialize_players()
 {
     hunter = new Hunter();
+    Victim::position_x = 100;
+    Victim::position_y = 100;
+    victim_1 = new Victim();
+    victim_2 = new Victim();
+    victim_3 = new Victim();
+    victim_4 = new Victim();
+    victim_5 = new Victim(); // переделать в список
 }
 
 Game::Game()
 {
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
     this->initialize_variables();
-    this->initialize_enemies();
+    this->initialize_players();
     this->initialize_window();
     field_image.loadFromFile("images/default_field.jpg");
     field_texture.loadFromImage(field_image);
     field_sprite.setTexture(field_texture);
-    field_sprite.setPosition(10, 10);
+    field_sprite.setScale(scaleX, scaleY);
+    field_sprite.setPosition(0, 0);
 }
 
 Game::~Game()
@@ -65,5 +75,10 @@ void Game::render()
     this->window->clear(sf::Color(0, 255, 0, 255));
     this->window->draw(field_sprite);
     this->window->draw(hunter->hunter_sprite);
+    this->window->draw(victim_1->victim_sprite);
+    this->window->draw(victim_2->victim_sprite);
+    this->window->draw(victim_3->victim_sprite);
+    this->window->draw(victim_4->victim_sprite);
+    this->window->draw(victim_5->victim_sprite);
     this->window->display();
 }
