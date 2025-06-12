@@ -55,10 +55,18 @@ public:
     sf::CircleShape preview_shape;
     bool is_selected;
     Victim(float radius, const sf::Color& color, float x, float y);
-    void move(float target_x, float target_y);
+    virtual void move(float target_x, float target_y);
     bool contains(float x, float y);
     void show_preview(float target_x, float target_y);
     void hide_preview();
+    bool has_moved;
+};
+
+class Hunter : public Victim
+{
+public:
+    Hunter(float radius, const sf::Color& color, float x, float y);
+    void move(float target_x, float target_y);
 };
 
 class Game
@@ -73,6 +81,8 @@ private:
     std::vector<Victim> victims;
     Victim* selected_victim;
     Victim* previewed_victim;
+    Hunter hunter;
+    bool is_victims_turn;
 public:
     Game();
     virtual ~Game();
@@ -84,7 +94,7 @@ public:
     void render();
     void update_events();
     void run();
-    void handle_mouse_click(float mouse_x, float mouse_y);
+    void handle_mouse_click(float mouse_x, float mouse_y, bool which_button);
     void handle_mouse_move(float mouse_x, float mouse_y);
 };
 #endif

@@ -8,19 +8,30 @@ Victim::Victim(float radius, const sf::Color &color, float x, float y) : is_sele
 
     preview_shape.setRadius(radius);
     preview_shape.setFillColor(sf::Color(color.r, color.g, color.b, 100));
-    preview_shape.setPosition(-100, -100);
+    preview_shape.setPosition(-1000, -1000);
     preview_shape.setOutlineThickness(2);
     preview_shape.setOutlineColor(sf::Color::White);
 }
 
+Hunter::Hunter(float radius, const sf::Color& color, float x, float y) : Victim(radius, color, x, y)
+{
+    shape.setRadius(radius);
+    preview_shape.setRadius(radius);
+}
+
 void Victim::move(float target_x, float target_y)
 {
+    if (has_moved)
+    {
+        return;
+    }
+
     sf::Vector2f current_position = shape.getPosition();
     float dx = target_x - (current_position.x + shape.getRadius());
     float dy = target_y - (current_position.y + shape.getRadius());
     float distance = std::sqrt(dx * dx + dy * dy);
 
-    if (distance > shape.getRadius() * 2)
+    if (distance > 0)
     {
         dx /= distance;
         dy /= distance;
@@ -29,6 +40,7 @@ void Victim::move(float target_x, float target_y)
     }
 
     shape.move(dx, dy);
+    has_moved = true;
 }
 
 bool Victim::contains(float x, float y)
@@ -46,7 +58,7 @@ void Victim::show_preview(float target_x, float target_y)
     float dy = target_y - (current_position.y + shape.getRadius());
     float distance = std::sqrt(dx * dx + dy * dy);
 
-    if (distance > shape.getRadius() * 2)
+    if (distance > 0)
     {
         dx /= distance;
         dy /= distance;
@@ -59,7 +71,31 @@ void Victim::show_preview(float target_x, float target_y)
 
 void Victim::hide_preview()
 {
-    preview_shape.setPosition(-100, -100);
+    preview_shape.setPosition(-1000, -1000);
+}
+
+void Hunter::move(float target_x, float target_y)
+{
+    if (has_moved)
+    {
+        return;
+    }
+
+    sf::Vector2f current_position = shape.getPosition();
+    float dx = target_x - (current_position.x + shape.getRadius());
+    float dy = target_y - (current_position.y + shape.getRadius());
+    float distance = std::sqrt(dx * dx + dy * dy);
+
+    if (distance > 0)
+    {
+        dx /= distance;
+        dy /= distance;
+        dx *= shape.getRadius() * 2;
+        dy *= shape.getRadius() * 2;
+    }
+
+    shape.move(dx, dy);
+    has_moved = true;
 }
 
 void Game::initialize_variables()
@@ -83,7 +119,7 @@ void Game::initialize_players()
     }
 }
 
-Game::Game()
+Game::Game() : hunter(75.f, sf::Color::Red, 25.f, 300.f), selected_victim(nullptr)
 {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -122,7 +158,13 @@ void Game::update_events()
                 break;
             case sf::Event::MouseButtonPressed:
                 if (event.mouseButton.button == sf::Mouse::Left)
-                    handle_mouse_click(event.mouseButton.x, event.mouseButton.y);
+                {
+                    handle_mouse_click(event.mouseButton.x, event.mouseButton.y, true);
+                }
+                else if (event.mouseButton.button == sf::Mouse::Right)
+                {
+                    handle_mouse_click(event.mouseButton.x, event.mouseButton.y, false);
+                }
                 break;
             case sf::Event::MouseMoved:
                 if (selected_victim)
@@ -132,29 +174,67 @@ void Game::update_events()
     }
 }
 
-void Game::handle_mouse_click(float mouse_x, float mouse_y)
+void Game::handle_mouse_click(float mouse_x, float mouse_y, bool is_left_click)
 {
-    if (!selected_victim)
+    if (is_left_click)
     {
-        for (auto& victim : victims)
+        if (!selected_victim)
         {
-            if (victim.contains(mouse_x, mouse_y))
+            for (auto& victim : victims)
             {
-                selected_victim = &victim;
-                victim.is_selected = true;
+                if (victim.contains(mouse_x, mouse_y) && !victim.has_moved)
+                {
+                    if (selected_victim)
+                    {
+                        selected_victim->is_selected = false;
+                        selected_victim->hide_preview();
+                    }
+                    selected_victim = &victim;
+                    victim.is_selected = true;
+                    victim.show_preview(mouse_x, mouse_y);
+                    break;
+                }
             }
-            else
+
+            if (hunter.contains(mouse_x, mouse_y) && !hunter.has_moved)
             {
-                victim.is_selected = false;
-                victim.hide_preview();
+                if (selected_victim)
+                {
+                    selected_victim->is_selected = false;
+                    selected_victim->hide_preview();
+                }
+                selected_victim = &hunter;
+                hunter.is_selected = true;
+                hunter.show_preview(mouse_x, mouse_y);
             }
         }
     }
     else
     {
-        selected_victim->move(mouse_x, mouse_y);
-        selected_victim->hide_preview();
-        selected_victim = nullptr;
+        if (selected_victim)
+        {
+            selected_victim->move(mouse_x, mouse_y);
+            selected_victim->hide_preview();
+            selected_victim->is_selected = false;
+            selected_victim = nullptr;
+
+            if (is_victims_turn)
+            {
+                bool all_victims_moved = true;
+                for (const auto& victim : victims)
+                {
+                    if (!victim.has_moved)
+                    {
+                        all_victims_moved = false;
+                        break;
+                    }
+                }
+                if (all_victims_moved)
+                {
+                    is_victims_turn = false;
+                }
+            }
+        }
     }
 }
 
@@ -200,6 +280,8 @@ void Game::render()
         this->window->draw(victim.shape);
         this->window->draw(victim.preview_shape);
     }
+    this->window->draw(hunter.shape);
+    this->window->draw(hunter.preview_shape);
     this->window->display();
 }
 
