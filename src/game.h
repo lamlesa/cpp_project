@@ -83,6 +83,11 @@ private:
     Victim* previewed_victim;
     Hunter hunter;
     bool is_victims_turn;
+    int hunter_score;
+    int victims_score;
+    sf::Font font;
+    sf::Text hunter_score_text;
+    sf::Text victims_score_text;
 public:
     Game();
     virtual ~Game();
@@ -96,5 +101,6 @@ public:
     void run();
     void handle_mouse_click(float mouse_x, float mouse_y, bool which_button);
     void handle_mouse_move(float mouse_x, float mouse_y);
+    bool is_collision(const sf::CircleShape& shape_1, const sf::CircleShape& shape_2);
 };
 #endif

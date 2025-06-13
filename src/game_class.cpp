@@ -121,13 +121,29 @@ void Game::initialize_players()
     }
 }
 
-Game::Game() : hunter(75.f, sf::Color::Red, 25.f, 300.f), selected_victim(nullptr)
+Game::Game() : hunter(75.f, sf::Color::Red, 25.f, 300.f), selected_victim(nullptr), hunter_score(0), victims_score(0)
 {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
     this->initialize_variables();
     this->initialize_players();
     this->initialize_window();
+
+    if (!font.loadFromFile("arial.ttf"))
+    {
+        std::cerr << "Failed to load font!" << std::endl;
+    }
+
+    hunter_score_text.setFont(font);
+    hunter_score_text.setCharacterSize(24);
+    hunter_score_text.setFillColor(sf::Color::Red);
+    hunter_score_text.setString("Hunter Score: 0");
+
+    victims_score_text.setFont(font);
+    victims_score_text.setCharacterSize(24);
+    victims_score_text.setFillColor(sf::Color::Red);
+    victims_score_text.setString("Victims Score: 0");
+
     field_image.loadFromFile("images/default_field.jpg");
     field_texture.loadFromImage(field_image);
     field_sprite.setTexture(field_texture);
@@ -263,42 +279,90 @@ void Game::handle_mouse_move(float mouse_x, float mouse_y)
     }
 }
 
+bool Game::is_collision(const sf::CircleShape &shape_1, const sf::CircleShape &shape_2)
+{
+    sf::Vector2f pos_1 = shape_1.getPosition();
+    sf::Vector2f pos_2 = shape_2.getPosition();
+    float radius_1 = shape_1.getRadius();
+    float radius_2 = shape_2.getRadius();
+
+    float dx = pos_1.x - pos_2.x;
+    float dy = pos_1.y - pos_2.y;
+    float distance = std::sqrt(dx * dx + dy * dy);
+
+    return distance < (radius_1 + radius_2);
+}
+
 void Game::update()
 {
     this->update_events();
-    // if (selected_victim)
-    // {
-    //     float diameter = selected_victim->shape.getRadius() * 2;
-    //     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-    //     {
-    //         selected_victim->move(-diameter, 0.f);
-    //     }
-    //     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-    //     {
-    //         selected_victim->move(diameter, 0.f);
-    //     }
-    //     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-    //     {
-    //         selected_victim->move(0.f, -diameter);
-    //     }
-    //     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-    //     {
-    //         selected_victim->move(0.f, diameter);
-    //     }
-    // }
+
+    for (auto it = victims.begin(); it != victims.end(); )
+    {
+        if (is_collision(hunter.shape, it->shape))
+        {
+            hunter_score++;
+            it = victims.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    for (auto& victim : victims)
+    {
+        sf::Vector2f position = victim.shape.getPosition();
+        if (position.x >= 500 && position.x < 510)
+        {
+            victims_score++;
+            victim.shape.setPosition(1000.f, position.y);
+        }
+        else if (position.x >= 750 && position.x < 760)
+        {
+            victims_score++;
+            victim.shape.setPosition(1000.f, position.y);
+        }
+        else if (position.x >= 900 && position.x < 910)
+        {
+            victims_score++;
+            victim.shape.setPosition(1000.f, position.y);
+        }
+    }
+
+    hunter_score_text.setString("Hunter Score: " + std::to_string(hunter_score));
+    victims_score_text.setString("Victims Score: " + std::to_string(victims_score));
 }
+
 
 void Game::render()
 {
     this->window->clear(sf::Color(0, 255, 0, 255));
     this->window->draw(field_sprite);
+
     for (const auto& victim : victims)
     {
         this->window->draw(victim.shape);
         this->window->draw(victim.preview_shape);
     }
+
     this->window->draw(hunter.shape);
     this->window->draw(hunter.preview_shape);
+
+    hunter_score_text.setString("Hunter Score: " + std::to_string(hunter_score));
+    victims_score_text.setString("Victims Score: " + std::to_string(victims_score));
+
+    sf::FloatRect hunterTextBounds = hunter_score_text.getLocalBounds();
+    hunter_score_text.setOrigin(hunterTextBounds.left + hunterTextBounds.width / 2.0f, hunterTextBounds.top + hunterTextBounds.height / 2.0f);
+    hunter_score_text.setPosition(this->window->getSize().x / 2.0f, this->window->getSize().y - 30.0f);
+
+    sf::FloatRect victimsTextBounds = victims_score_text.getLocalBounds();
+    victims_score_text.setOrigin(victimsTextBounds.left + victimsTextBounds.width / 2.0f, victimsTextBounds.top + victimsTextBounds.height / 2.0f);
+    victims_score_text.setPosition(this->window->getSize().x / 2.0f, this->window->getSize().y - 10.0f);
+
+    this->window->draw(hunter_score_text);
+    this->window->draw(victims_score_text);
+
     this->window->display();
 }
 
