@@ -17,6 +17,8 @@ Hunter::Hunter(float radius, const sf::Color& color, float x, float y) : Victim(
 {
     shape.setRadius(radius);
     preview_shape.setRadius(radius);
+    is_selected = false;
+    has_moved = false;
 }
 
 void Victim::move(float target_x, float target_y)
@@ -131,6 +133,7 @@ Game::Game() : hunter(75.f, sf::Color::Red, 25.f, 300.f), selected_victim(nullpt
     field_sprite.setTexture(field_texture);
     field_sprite.setScale(scaleX, scaleY);
     field_sprite.setPosition(0, 0);
+    is_victims_turn = true;
 }
 
 Game::~Game()
@@ -216,27 +219,41 @@ void Game::handle_mouse_click(float mouse_x, float mouse_y, bool is_left_click)
             selected_victim->move(mouse_x, mouse_y);
             selected_victim->hide_preview();
             selected_victim->is_selected = false;
-            selected_victim = nullptr;
 
-            if (is_victims_turn)
+            if (selected_victim == &hunter)
             {
-                bool all_victims_moved = true;
-                for (const auto& victim : victims)
+                is_victims_turn = true;
+                for (auto& victim : victims)
                 {
-                    if (!victim.has_moved)
-                    {
-                        all_victims_moved = false;
-                        break;
-                    }
-                }
-                if (all_victims_moved)
-                {
-                    is_victims_turn = false;
+                    victim.has_moved = false;
                 }
             }
+            else
+            {
+                if (is_victims_turn)
+                {
+                    bool all_victims_moved = true;
+                    for (const auto& victim : victims)
+                    {
+                        if (!victim.has_moved)
+                        {
+                            all_victims_moved = false;
+                            break;
+                        }
+                    }
+                    if (all_victims_moved)
+                    {
+                        is_victims_turn = false;
+                        hunter.has_moved = false;
+                    }
+                }
+            }
+
+            selected_victim = nullptr;
         }
     }
 }
+
 
 void Game::handle_mouse_move(float mouse_x, float mouse_y)
 {
@@ -249,26 +266,26 @@ void Game::handle_mouse_move(float mouse_x, float mouse_y)
 void Game::update()
 {
     this->update_events();
-    if (selected_victim)
-    {
-        float diameter = selected_victim->shape.getRadius() * 2;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-        {
-            selected_victim->move(-diameter, 0.f);
-        }
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-        {
-            selected_victim->move(diameter, 0.f);
-        }
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-        {
-            selected_victim->move(0.f, -diameter);
-        }
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-        {
-            selected_victim->move(0.f, diameter);
-        }
-    }
+    // if (selected_victim)
+    // {
+    //     float diameter = selected_victim->shape.getRadius() * 2;
+    //     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+    //     {
+    //         selected_victim->move(-diameter, 0.f);
+    //     }
+    //     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+    //     {
+    //         selected_victim->move(diameter, 0.f);
+    //     }
+    //     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+    //     {
+    //         selected_victim->move(0.f, -diameter);
+    //     }
+    //     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+    //     {
+    //         selected_victim->move(0.f, diameter);
+    //     }
+    // }
 }
 
 void Game::render()
