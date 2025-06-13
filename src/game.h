@@ -55,18 +55,19 @@ public:
     sf::CircleShape preview_shape;
     bool is_selected;
     Victim(float radius, const sf::Color& color, float x, float y);
-    virtual void move(float target_x, float target_y);
+    virtual void move(float target_x, float target_y, float window_width, float window_height);
     bool contains(float x, float y);
     void show_preview(float target_x, float target_y);
     void hide_preview();
     bool has_moved;
+    sf::Vector2f previous_position;
 };
 
 class Hunter : public Victim
 {
 public:
     Hunter(float radius, const sf::Color& color, float x, float y);
-    void move(float target_x, float target_y);
+    void move(float target_x, float target_y, float window_width, float window_height);
 };
 
 class Game
@@ -88,6 +89,10 @@ private:
     sf::Font font;
     sf::Text hunter_score_text;
     sf::Text victims_score_text;
+    sf::SoundBuffer eat_buffer;
+    sf::Sound eat_sound;
+    sf::SoundBuffer win_buffer;
+    sf::Sound win_sound;
 public:
     Game();
     virtual ~Game();
@@ -101,6 +106,8 @@ public:
     void run();
     void handle_mouse_click(float mouse_x, float mouse_y, bool which_button);
     void handle_mouse_move(float mouse_x, float mouse_y);
-    bool is_collision(const sf::CircleShape& shape_1, const sf::CircleShape& shape_2);
+    void check_collisions_and_boundaries();
+    void check_game_end_condition();
+    void display_game_over(const std::string& message);
 };
 #endif

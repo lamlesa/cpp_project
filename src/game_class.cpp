@@ -5,6 +5,7 @@ Victim::Victim(float radius, const sf::Color &color, float x, float y) : is_sele
     shape.setRadius(radius);
     shape.setFillColor(color);
     shape.setPosition(x, y);
+    previous_position = sf::Vector2f(x, y);
 
     preview_shape.setRadius(radius);
     preview_shape.setFillColor(sf::Color(color.r, color.g, color.b, 100));
@@ -21,14 +22,17 @@ Hunter::Hunter(float radius, const sf::Color& color, float x, float y) : Victim(
     has_moved = false;
 }
 
-void Victim::move(float target_x, float target_y)
+void Victim::move(float target_x, float target_y, float window_width, float window_height)
 {
     if (has_moved)
     {
         return;
     }
+    if (has_moved) return;
 
     sf::Vector2f current_position = shape.getPosition();
+    previous_position = current_position;
+
     float dx = target_x - (current_position.x + shape.getRadius());
     float dy = target_y - (current_position.y + shape.getRadius());
     float distance = std::sqrt(dx * dx + dy * dy);
@@ -41,9 +45,23 @@ void Victim::move(float target_x, float target_y)
         dy *= shape.getRadius() * 2;
     }
 
-    shape.move(dx, dy);
+    previous_position = current_position;
+
+    sf::Vector2f new_position = current_position + sf::Vector2f(dx, dy);
+
+    if (new_position.x >= 0 && new_position.x + shape.getRadius() * 2 <= window_width)
+    {
+        shape.move(dx, 0);
+    }
+    if (new_position.y >= 0 && new_position.y + shape.getRadius() * 2 <= window_height)
+    {
+        shape.move(0, dy);
+    }
+
     has_moved = true;
 }
+
+
 
 bool Victim::contains(float x, float y)
 {
@@ -76,7 +94,7 @@ void Victim::hide_preview()
     preview_shape.setPosition(-1000, -1000);
 }
 
-void Hunter::move(float target_x, float target_y)
+void Hunter::move(float target_x, float target_y, float window_width, float window_height)
 {
     if (has_moved)
     {
@@ -96,9 +114,21 @@ void Hunter::move(float target_x, float target_y)
         dy *= shape.getRadius() * 2;
     }
 
-    shape.move(dx, dy);
+    sf::Vector2f new_position = current_position + sf::Vector2f(dx, dy);
+
+    if (new_position.x >= 0 && new_position.x + shape.getRadius() * 2 <= window_width)
+    {
+        shape.move(dx, 0);
+    }
+    if (new_position.y >= 0 && new_position.y + shape.getRadius() * 2 <= window_height)
+    {
+        shape.move(0, dy);
+    }
+
     has_moved = true;
 }
+
+
 
 void Game::initialize_variables()
 {
@@ -150,6 +180,14 @@ Game::Game() : hunter(75.f, sf::Color::Red, 25.f, 300.f), selected_victim(nullpt
     field_sprite.setScale(scaleX, scaleY);
     field_sprite.setPosition(0, 0);
     is_victims_turn = true;
+
+    if (!eat_buffer.loadFromFile("sound_eat_victim.mp3") || !win_buffer.loadFromFile("sound_win.mp3"))
+    {
+        std::cerr << "Error loading sound files" << std::endl;
+    }
+
+    eat_sound.setBuffer(eat_buffer);
+    win_sound.setBuffer(win_buffer);
 }
 
 Game::~Game()
@@ -232,7 +270,7 @@ void Game::handle_mouse_click(float mouse_x, float mouse_y, bool is_left_click)
     {
         if (selected_victim)
         {
-            selected_victim->move(mouse_x, mouse_y);
+            selected_victim->move(mouse_x, mouse_y, this->window->getSize().x, this->window->getSize().y);
             selected_victim->hide_preview();
             selected_victim->is_selected = false;
 
@@ -279,59 +317,86 @@ void Game::handle_mouse_move(float mouse_x, float mouse_y)
     }
 }
 
-bool Game::is_collision(const sf::CircleShape &shape_1, const sf::CircleShape &shape_2)
+void Game::check_collisions_and_boundaries()
 {
-    sf::Vector2f pos_1 = shape_1.getPosition();
-    sf::Vector2f pos_2 = shape_2.getPosition();
-    float radius_1 = shape_1.getRadius();
-    float radius_2 = shape_2.getRadius();
+    for (auto it = victims.begin(); it != victims.end(); )
+    {
+        sf::Vector2f hunter_pos = hunter.shape.getPosition();
+        sf::Vector2f victim_pos = it->shape.getPosition();
+        float distance = std::sqrt(std::pow(hunter_pos.x - victim_pos.x, 2) + 
+                                 std::pow(hunter_pos.y - victim_pos.y, 2));
 
-    float dx = pos_1.x - pos_2.x;
-    float dy = pos_1.y - pos_2.y;
-    float distance = std::sqrt(dx * dx + dy * dy);
+        if (distance < hunter.shape.getRadius() + it->shape.getRadius())
+        {
+            it = victims.erase(it);
+            hunter_score++;
+            eat_sound.play();
+        }
+        else
+        {
+            if ((it->previous_position.x > 500 && victim_pos.x <= 500) ||
+                (it->previous_position.x > 300 && victim_pos.x <= 300) ||
+                (it->previous_position.x > 50 && victim_pos.x <= 50))
+            {
+                victims_score++;
+            }
+            ++it;
+        }
+    }
+}
 
-    return distance < (radius_1 + radius_2);
+
+void Game::check_game_end_condition()
+{
+    if (hunter_score == 5)
+    {
+        win_sound.play();
+        display_game_over("Hunter Wins!");
+        return;
+    }
+    
+    bool all_crossed = true;
+    for (const auto& victim : victims)
+    {
+        if (victim.shape.getPosition().x + victim.shape.getRadius() * 2 > 0)
+        {
+            all_crossed = false;
+            break;
+        }
+    }
+    
+    if (all_crossed && !victims.empty())
+    {
+        win_sound.play();
+        display_game_over("Victims Win!");
+    }
+}
+
+void Game::display_game_over(const std::string& message)
+{
+    sf::Text game_over_text;
+    game_over_text.setFont(font);
+    game_over_text.setString(message);
+    game_over_text.setCharacterSize(50);
+    game_over_text.setFillColor(sf::Color::White);
+
+    sf::FloatRect textBounds = game_over_text.getLocalBounds();
+    game_over_text.setOrigin(textBounds.left + textBounds.width/2.0f, 
+                           textBounds.top + textBounds.height/2.0f);
+    game_over_text.setPosition(this->window->getSize().x/2.0f, 
+                             this->window->getSize().y/2.0f);
+
+    this->window->draw(game_over_text);
+    this->window->display();
+    sf::sleep(sf::seconds(3));
+    this->window->close();
 }
 
 void Game::update()
 {
     this->update_events();
-
-    for (auto it = victims.begin(); it != victims.end(); )
-    {
-        if (is_collision(hunter.shape, it->shape))
-        {
-            hunter_score++;
-            it = victims.erase(it);
-        }
-        else
-        {
-            ++it;
-        }
-    }
-
-    for (auto& victim : victims)
-    {
-        sf::Vector2f position = victim.shape.getPosition();
-        if (position.x >= 500 && position.x < 510)
-        {
-            victims_score++;
-            victim.shape.setPosition(1000.f, position.y);
-        }
-        else if (position.x >= 750 && position.x < 760)
-        {
-            victims_score++;
-            victim.shape.setPosition(1000.f, position.y);
-        }
-        else if (position.x >= 900 && position.x < 910)
-        {
-            victims_score++;
-            victim.shape.setPosition(1000.f, position.y);
-        }
-    }
-
-    hunter_score_text.setString("Hunter Score: " + std::to_string(hunter_score));
-    victims_score_text.setString("Victims Score: " + std::to_string(victims_score));
+    this->check_collisions_and_boundaries();
+    this->check_game_end_condition();
 }
 
 
@@ -354,17 +419,18 @@ void Game::render()
 
     sf::FloatRect hunterTextBounds = hunter_score_text.getLocalBounds();
     hunter_score_text.setOrigin(hunterTextBounds.left + hunterTextBounds.width / 2.0f, hunterTextBounds.top + hunterTextBounds.height / 2.0f);
-    hunter_score_text.setPosition(this->window->getSize().x / 2.0f, this->window->getSize().y - 30.0f);
+    hunter_score_text.setPosition(this->window->getSize().x / 2.0f, this->window->getSize().y - 50.0f);
 
     sf::FloatRect victimsTextBounds = victims_score_text.getLocalBounds();
     victims_score_text.setOrigin(victimsTextBounds.left + victimsTextBounds.width / 2.0f, victimsTextBounds.top + victimsTextBounds.height / 2.0f);
-    victims_score_text.setPosition(this->window->getSize().x / 2.0f, this->window->getSize().y - 10.0f);
+    victims_score_text.setPosition(this->window->getSize().x / 2.0f, this->window->getSize().y - 20.0f);
 
     this->window->draw(hunter_score_text);
     this->window->draw(victims_score_text);
 
     this->window->display();
 }
+
 
 void Game::run()
 {

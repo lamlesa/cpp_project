@@ -1,30 +1,32 @@
 cmake_minimum_required(VERSION 3.10)
-project(MyProject VERSION 1.0)
+project(project)
 
-set(CXX_STANDARD 17)
-set(SFML_DIR "C:/SFML-2.6.2")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
-include_directories("C:/SFML-2.6.2/include")
+# 1. Указываем путь к готовой сборке SFML (скачанной с сайта)
+set(SFML_DIR "C:/SFML-2.6.2/lib/cmake/SFML")  # Путь к CMake-файлам SFML
+find_package(SFML 2.6 COMPONENTS graphics window system audio REQUIRED)
 
-link_directories("C:/SFML-2.6.2/lib")
+# 2. Наш исполняемый файл
+add_executable(project 
+    main.cpp 
+    game_class.cpp  # Добавляем все исходные файлы
+)
 
-set(SFML_DIR "C:/SFML-2.6.2/lib/cmake/SFML")
-
-find_package(SFML 2.6.2 COMPONENTS system window graphics audio network REQUIRED)
-
-file(GLOB_RECURSE SRC_FILES cpp_project/*.cpp)
-
-add_executable(MyProject ${SRC_FILES})
-
-target_link_libraries(MyProject
+# 3. Подключаем SFML
+target_link_libraries(project PRIVATE
     sfml-graphics
     sfml-window
     sfml-system
-    sfml-audio
-    sfml-network
-    openal32
-    winmm
-    gdi32
-    user32
+    sfml-audio          # Добавляем аудио
 )
+
+# 4. Для Windows: копируем DLL-файлы рядом с исполняемым файлом
+if(WIN32)
+    # Копируем все нужные DLL из SFML/bin в папку сборки
+    file(GLOB SFML_DLLS "C:/SFML-2.6.2/bin/*.dll")
+    add_custom_command(TARGET project POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${SFML_DLLS} $<TARGET_FILE_DIR:project>
+    )
+endif()
