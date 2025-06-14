@@ -9,8 +9,9 @@
 # Как собирать программу
 1. С помощью CMake:
 mkdir build
-cmake -B build -A x64
-cmake --build build --config Debug 
+cd build
+cmake --build .
+
 2. С помощью командной строки
 g++ -c .\main.cpp .\game_class.cpp -I"C:\SFML-2.6.2\include"
 g++ .\main.o .\game_class.o -o main_test -L"C:\SFML-2.6.2\lib" -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
