@@ -8,46 +8,6 @@
 #include <vector>
 #include <cmath>
 
-// struct Hunter
-// {
-//     sf::Image hunter_image;
-//     sf::Sprite hunter_sprite;
-//     sf::Texture hunter_texture;
-//     int hunter_id, x, y;
-//     bool draw = 0;
-//     Hunter()
-//     {
-//         hunter_image.loadFromFile("images/hunter.png");
-//         float scaleX = 0.15f;
-//         float scaleY = 0.15f;
-//         hunter_texture.loadFromImage(hunter_image);
-//         hunter_sprite.setTexture(hunter_texture);
-//         hunter_sprite.setScale(scaleX, scaleY);
-//         hunter_sprite.setPosition(20, 20);
-//     }
-// };
-
-// struct Victim
-// {
-//     sf::Image victim_image;
-//     sf::Sprite victim_sprite;
-//     sf::Texture victim_texture;
-//     int victim_id, x, y;
-//     static int position_x, position_y;
-//     bool draw = 0;
-//     Victim()
-//     {
-//         victim_image.loadFromFile("images/victim.png");
-//         float scaleX = 0.15f;
-//         float scaleY = 0.15f;
-//         victim_texture.loadFromImage(victim_image);
-//         victim_sprite.setTexture(victim_texture);
-//         victim_sprite.setScale(scaleX, scaleY);
-//         victim_sprite.setPosition(position_x, position_y);
-//         position_x += 100;
-//     }
-// };
-
 class Victim
 {
 public:
@@ -61,6 +21,8 @@ public:
     void hide_preview();
     bool has_moved;
     sf::Vector2f previous_position;
+    bool crossed_scoring_line;
+    bool reached_left_edge;
 };
 
 class Hunter : public Victim
@@ -109,5 +71,6 @@ public:
     void check_collisions_and_boundaries();
     void check_game_end_condition();
     void display_game_over(const std::string& message);
+    void reset_moves();
 };
 #endif
