@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../src/game.h"
+#include "../headers/game.h"
 
 TEST(VictimTest, ConstructorInitializesCorrectly) {
     Victim victim(25.f, sf::Color::Green, 100.f, 200.f);
