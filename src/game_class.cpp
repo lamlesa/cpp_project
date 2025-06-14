@@ -242,7 +242,8 @@ void Game::handle_mouse_click(float mouse_x, float mouse_y, bool is_left_click)
     } 
     else {
         
-        if (selected_victim) {
+        if (selected_victim)
+        {
             selected_victim->move(mouse_x, mouse_y, window->getSize().x, window->getSize().y);
             selected_victim->is_selected = false;
             selected_victim->hide_preview();
