@@ -1,5 +1,0 @@
-/mnt/c/PROGA/PROJECT/cpp_project/src/build/CMakeFiles/game.dir
-/mnt/c/PROGA/PROJECT/cpp_project/src/build/CMakeFiles/runUnitTests.dir
-/mnt/c/PROGA/PROJECT/cpp_project/src/build/CMakeFiles/test.dir
-/mnt/c/PROGA/PROJECT/cpp_project/src/build/CMakeFiles/edit_cache.dir
-/mnt/c/PROGA/PROJECT/cpp_project/src/build/CMakeFiles/rebuild_cache.dir
