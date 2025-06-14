@@ -34,7 +34,7 @@ public:
 
 class Game
 {
-private:
+public:
     sf::RenderWindow* window;
     sf::VideoMode video_mode;
     sf::Event event;
@@ -55,7 +55,8 @@ private:
     sf::Sound eat_sound;
     sf::SoundBuffer win_buffer;
     sf::Sound win_sound;
-public:
+    bool game_ended;
+    sf::Clock end_game_clock;
     Game();
     virtual ~Game();
     void initialize_variables();
@@ -73,4 +74,5 @@ public:
     void display_game_over(const std::string& message);
     void reset_moves();
 };
+
 #endif

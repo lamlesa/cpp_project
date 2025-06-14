@@ -128,12 +128,12 @@ void Game::initialize_players()
     float radius = 25.f;
     for (int i = 0; i < 5; ++i)
     {
-        victims.emplace_back(radius, sf::Color::Green, 1000.f, 25.f + i * (2 * radius + 110));
+        victims.emplace_back(radius, sf::Color::Green, 1000.f, 25.f + i * (2 * radius + 124));
     }
 }
 
-Game::Game() : hunter(50.f, sf::Color::Red, 25.f, 300.f), selected_victim(nullptr), 
-               hunter_score(0), victims_score(0)
+Game::Game() : hunter(50.f, sf::Color::Red, 0.f, 348.f), selected_victim(nullptr), 
+               hunter_score(0), victims_score(0), game_ended(false)
 {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -279,8 +279,6 @@ void Game::handle_mouse_move(float mouse_x, float mouse_y)
 
 void Game::check_collisions_and_boundaries()
 {
-    const float scoring_line_x = 500.f;
-    
     for (auto it = victims.begin(); it != victims.end(); )
     {
         sf::Vector2f victim_pos = it->shape.getPosition();
@@ -288,7 +286,7 @@ void Game::check_collisions_and_boundaries()
         
         sf::Vector2f hunter_pos = hunter.shape.getPosition();
         float distance = std::sqrt(std::pow(hunter_pos.x - victim_pos.x, 2) + 
-                        std::pow(hunter_pos.y - victim_pos.y, 2));
+                                 std::pow(hunter_pos.y - victim_pos.y, 2));
 
         if (distance < hunter.shape.getRadius() + it->shape.getRadius())
         {
@@ -303,16 +301,9 @@ void Game::check_collisions_and_boundaries()
             it->reached_left_edge = true;
         }
 
-        if (!it->crossed_scoring_line && victim_right_edge <= scoring_line_x)
-        {
-            it->crossed_scoring_line = true;
-            victims_score++;
-        }
-
         ++it;
     }
 }
-
 
 void Game::check_game_end_condition()
 {
@@ -322,21 +313,24 @@ void Game::check_game_end_condition()
         display_game_over("Hunter Wins!");
         return;
     }
-    
-    bool all_reached_edge = true;
-    for (const auto& victim : victims)
+
+    if (!victims.empty())
     {
-        if (!victim.reached_left_edge)
+        bool all_reached_edge = true;
+        for (const auto& victim : victims)
         {
-            all_reached_edge = false;
-            break;
+            if (!victim.reached_left_edge)
+            {
+                all_reached_edge = false;
+                break;
+            }
         }
-    }
-    
-    if (all_reached_edge && !victims.empty())
-    {
-        win_sound.play();
-        display_game_over("Victims Win!");
+        
+        if (all_reached_edge)
+        {
+            win_sound.play();
+            display_game_over("Victims Win!");
+        }
     }
 }
 
@@ -351,12 +345,18 @@ void Game::display_game_over(const std::string& message)
     sf::FloatRect textBounds = game_over_text.getLocalBounds();
     game_over_text.setOrigin(textBounds.left + textBounds.width/2.0f, 
                            textBounds.top + textBounds.height/2.0f);
-    game_over_text.setPosition(this->window->getSize().x/2.0f, 
-                             this->window->getSize().y/2.0f);
+    game_over_text.setPosition(window->getSize().x/2.0f, 
+                             window->getSize().y/2.0f);
 
-    this->window->draw(game_over_text);
-    this->window->display();
+    window->clear();
+    window->draw(field_sprite);
     
+    for (const auto& victim : victims)
+        window->draw(victim.shape);
+    window->draw(hunter.shape);
+    
+    window->draw(game_over_text);
+    window->display();
 }
 
 void Game::reset_moves()
@@ -378,7 +378,7 @@ void Game::update()
 
 void Game::render()
 {
-    this->window->clear(sf::Color(0, 255, 0, 255));
+    this->window->clear(sf::Color(0, 0, 255, 255));
     this->window->draw(field_sprite);
 
     for (const auto& victim : victims)
@@ -424,7 +424,7 @@ void Game::run()
 {
     while (this->window->isOpen())
     {
-        update();
-        render();
+        this->update();
+        this->render();
     }
 }
