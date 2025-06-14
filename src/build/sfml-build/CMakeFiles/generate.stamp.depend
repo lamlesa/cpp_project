@@ -1,0 +1,15 @@
+# CMake generation dependency list for this directory.
+C:/PROGA/PROJECT/cpp_project/src/SFML-2.6.2-sources/SFML-2.6.2/CMakeLists.txt
+C:/PROGA/PROJECT/cpp_project/src/SFML-2.6.2-sources/SFML-2.6.2/cmake/Config.cmake
+C:/PROGA/PROJECT/cpp_project/src/SFML-2.6.2-sources/SFML-2.6.2/cmake/SFMLConfig.cmake.in
+C:/PROGA/PROJECT/cpp_project/src/SFML-2.6.2-sources/SFML-2.6.2/cmake/SFMLConfigDependencies.cmake.in
+C:/Program Files/CMake/share/cmake-3.31/Modules/BasicConfigVersion-SameMajorVersion.cmake.in
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakePackageConfigHelpers.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CPack.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CPackComponent.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CheckIncludeFile.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CheckIncludeFileCXX.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CheckTypeSize.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/GNUInstallDirs.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/WriteBasicConfigVersionFile.cmake
+C:/Program Files/CMake/share/cmake-3.31/Templates/CPackConfig.cmake.in

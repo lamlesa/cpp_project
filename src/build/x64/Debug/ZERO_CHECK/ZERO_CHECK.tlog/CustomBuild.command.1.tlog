@@ -1,0 +1,10 @@
+^C:\PROGA\PROJECT\CPP_PROJECT\SRC\BUILD\CMAKEFILES\A5B300B6B71C05B0F19A2C56DF96D622\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/PROGA/PROJECT/cpp_project/src -BC:/PROGA/PROJECT/cpp_project/src/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/PROGA/PROJECT/cpp_project/src/build/project.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

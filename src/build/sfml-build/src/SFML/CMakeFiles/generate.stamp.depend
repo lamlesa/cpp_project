@@ -1,0 +1,5 @@
+# CMake generation dependency list for this directory.
+C:/PROGA/PROJECT/cpp_project/src/SFML-2.6.2-sources/SFML-2.6.2/cmake/CompilerWarnings.cmake
+C:/PROGA/PROJECT/cpp_project/src/SFML-2.6.2-sources/SFML-2.6.2/cmake/Macros.cmake
+C:/PROGA/PROJECT/cpp_project/src/SFML-2.6.2-sources/SFML-2.6.2/src/SFML/CMakeLists.txt
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeParseArguments.cmake
